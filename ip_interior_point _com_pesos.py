@@ -1,6 +1,10 @@
 import numpy as np
-import time
+from scipy.optimize import minimize
+import time 
 import psutil
+
+# Definindo as medições observadas de diferenças de altura
+
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -108,7 +112,7 @@ d103 = -31.8426
 d104 = 46.1939  
 d105 = 31.8381  
 
-# Definindo a matriz A e o vetor L
+# Matriz A que relaciona as altitudes dos pontos (coeficientes das equações de diferença de altura)
 A = np.array([
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -217,38 +221,68 @@ A = np.array([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1]
 ])
 
-B = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, 
+# Vetor matriz P dos pesos
+
+P2  = np.array([
+    541.46, 174.26, 385.84, 144.17, 13.00, 108.10, 248.00, 83.43, 25.80, 44.13, 
+    71.79, 61.86, 39.68, 20.33, 61.25, 59.48, 54.20, 73.95, 26.20, 67.08, 
+    111.15, 146.63, 114.21, 2.32, 125.56, 449.34, 88.97, 170.71, 97.77, 71.40, 
+    130.45, 69.74, 192.64, 187.75, 116.91, 207.94, 104.57, 343.76, 119.70, 179.97, 
+    166.83, 17.69, 83.94, 149.01, 142.94, 152.97, 106.10, 144.99, 102.18, 170.45, 
+    116.89, 224.55, 121.30, 250.25, 810.85, 80.56, 248.13, 733.15, 154.27, 231.57, 
+    162.15, 97.77, 201.41, 132.89, 98.42, 100.45, 91.51, 111.09, 257.50, 217.55, 
+    61.75, 328.83, 232.82, 248.80, 46.46, 94.40, 189.77, 216.21, 16.06, 257.15, 
+    122.26, 126.99, 158.63, 123.99, 150.63, 21.08, 247.84, 70.63, 99.61, 78.20, 
+    545.71, 187.89, 143.85, 24.01, 306.49, 196.96, 302.18, 7.39, 15.60, 8.94, 
+    23.22, 3.17, 0.99, 7.35, 25.53
+])
+
+P = np.diag(1/P2)
+
+# Vetor b com as observações
+b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, 
               d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31, d32, d33, 
               d34, d35, d36, d37, d38, d39, d40, d41, d42, d43, d44, d45, d46, d47, d48, d49, 
               d50, d51, d52, d53, d54, d55, d56, d57, d58, d59, d60, d61, d62, d63, d64, d65, 
               d66, d67, d68, d69, d70, d71, d72, d73, d74, d75, d76, d77, d78, d79, d80, d81, 
               d82, d83, d84, d85, d86, d87, d88, d89, d90, d91, d92, d93, d94, d95, d96, d97, 
-              d98, d99, d100, d101, d102, d103, d104, d105])          
+              d98, d99, d100, d101, d102, d103, d104, d105])
 
-start_time = time.time()  # Marca o tempo inicial
+# Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
+def objective(x):
+    return np.sum((np.dot(np.dot(np.dot(A.T, P),A), x) - np.dot(np.dot(A.T,P),b)) ** 2)
 
-# Obter o processo atual
-process = psutil.Process()  # O processo do Python atual
+# Função que resolve o problema de otimização usando o método interior-point
+def ajuste_rede_nivelamento():
+    # Definindo um ponto inicial para as altitudes (arbitrário)
+    x0 = np.array([0] * 67)
 
-# Monitorando o uso de memória antes de começar
-memory_before = process.memory_info().rss / 1024  # em KB
+    # Marcando o tempo de início
+    start_time = time.time()
 
-# Calculando a matriz inversa de A
-A_inv = np.linalg.inv(np.dot(A.T,A))
+    # Obter o processo atual
+    process = psutil.Process()  # O processo do Python atual
 
-# Resolvendo o sistema Ax = L
-x = np.dot(A_inv, np.dot(A.T,B))
+    # Monitorando o uso de memória antes de começar
+    memory_before = process.memory_info().rss / 1024  # em KB
 
-# Monitorando o uso de memória após a execução
-memory_after = process.memory_info().rss / 1024  # em KB
-print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
+    resultado = minimize(objective, x0, method='trust-constr')
 
-# Medindo o tempo final
-end_time = time.time()  # Marca o tempo final
+    # Monitorando o uso de memória após a execução
+    memory_after = process.memory_info().rss / 1024  # em KB
+    print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
 
-# Calculando o tempo de execução
-execution_time = end_time - start_time
+    # Marcando o tempo de término
+    end_time = time.time()
 
-#print(", ".join([f"P{i+1} = {x[i]:.4f}" for i in range(67)]))
-print("Tempo de execução: {:.6f} segundos".format(execution_time))
+    # Calculando o tempo de execução
+    execution_time = end_time - start_time
+    print(f"Tempo de execução: {execution_time:.6f} segundos")
 
+    return resultado.x
+
+# Realizando o ajuste da rede de nivelamento
+altitudes_ajustadas = ajuste_rede_nivelamento()
+
+# Exibindo os resultados
+#print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))

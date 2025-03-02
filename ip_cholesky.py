@@ -1,6 +1,7 @@
 #Resolução Por Cholesky
 import numpy as np
 import time
+import psutil
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -237,8 +238,20 @@ B = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
 #D = np.dot(A.T, B)
  # Captura do tempo inicial e uso da CPU
 start_time = time.time()
+
+# Obter o processo atual
+process = psutil.Process()  # O processo do Python atual
+
+# Monitorando o uso de memória antes de começar
+memory_before = process.memory_info().rss / 1024  # em KB
+
  # Resolvendo o sistema usando o método de Cholesky
 solution = cholesky_solve(np.dot(A.T,A), np.dot(A.T,B))
+
+# Monitorando o uso de memória após a execução
+memory_after = process.memory_info().rss / 1024  # em KB
+print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
+
  # Captura do tempo final e uso da CPU
 end_time = time.time()
  # Cálculo do tempo de execução e uso de CPU
@@ -246,4 +259,4 @@ execution_time = end_time-start_time
  # Exibindo o resultado e métricas de desempenho
 
 #print(", ".join([f"P{i+1} = {solution[i]:.4f}" for i in range(67)]))
-print(f"\nTempo de execução: {execution_time:.6f} segundos")
+print(f"Tempo de execução: {execution_time:.6f} segundos")

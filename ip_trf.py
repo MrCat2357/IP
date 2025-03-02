@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.optimize import least_squares
-import time  # Importando a biblioteca time
+import time  
+import psutil
 
 # Definindo as medições observadas de diferenças de altura
-
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -241,7 +241,17 @@ def ajuste_rede_nivelamento():
     # Marcando o tempo de início
     start_time = time.time()
 
+    # Obter o processo atual
+    process = psutil.Process()  # O processo do Python atual
+
+    # Monitorando o uso de memória antes de começar
+    memory_before = process.memory_info().rss / 1024  # em KB
+
     resultado = least_squares(objective, x0, method='trf')
+
+    # Monitorando o uso de memória após a execução
+    memory_after = process.memory_info().rss / 1024  # em KB
+    print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
 
     # Marcando o tempo de término
     end_time = time.time()
@@ -249,6 +259,7 @@ def ajuste_rede_nivelamento():
     # Calculando o tempo de execução
     execution_time = end_time - start_time
     print(f"Tempo de execução: {execution_time:.6f} segundos")
+
 
     return resultado.x
 

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
-import time  # Importando a biblioteca time
+import time  
+import psutil
 
 # Definindo as medições observadas de diferenças de altura
 
@@ -230,7 +231,7 @@ b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
 
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
-    return np.sum((np.dot(A, x) - b) ** 2)
+    return np.sum(((np.dot(A, x) - b) ** 2))
 
 # Função que resolve o problema de otimização usando o método interior-point
 def ajuste_rede_nivelamento():
@@ -240,7 +241,17 @@ def ajuste_rede_nivelamento():
     # Marcando o tempo de início
     start_time = time.time()
 
+    # Obter o processo atual
+    process = psutil.Process()  # O processo do Python atual
+
+    # Monitorando o uso de memória antes de começar
+    memory_before = process.memory_info().rss / 1024  # em KB
+
     resultado = minimize(objective, x0, method='SLSQP')
+
+    # Monitorando o uso de memória após a execução
+    memory_after = process.memory_info().rss / 1024  # em KB
+    print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
 
     # Marcando o tempo de término
     end_time = time.time()
@@ -248,6 +259,7 @@ def ajuste_rede_nivelamento():
     # Calculando o tempo de execução
     execution_time = end_time - start_time
     print(f"Tempo de execução: {execution_time:.6f} segundos")
+
 
     return resultado.x
 
