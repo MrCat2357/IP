@@ -247,9 +247,10 @@ b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
 
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
-    return np.sum((np.dot(np.dot(np.dot(A.T, P),A), x) - np.dot(np.dot(A.T,P),b)) ** 2)
+    t = np.dot(A,x) - b
+    return np.sum(np.dot(t.T,(np.dot(P,t))) ** 2)
 
-# Função que resolve o problema de otimização usando o método interior-point
+# Função que resolve o problema de otimização usando o SQP
 def ajuste_rede_nivelamento():
     # Definindo um ponto inicial para as altitudes (arbitrário)
     x0 = np.array([0] * 67)
@@ -283,4 +284,4 @@ def ajuste_rede_nivelamento():
 altitudes_ajustadas = ajuste_rede_nivelamento()
 
 # Exibindo os resultados
-#print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))

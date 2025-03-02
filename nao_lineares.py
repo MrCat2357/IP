@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
+from scipy.optimize import least_squares
 import time 
 import psutil
 
@@ -254,7 +255,7 @@ def objective(x):
     return np.sum(np.dot(t.T,(np.dot(P,t))) ** 2)
 
 # Função que resolve o problema de otimização usando o método interior-point
-def ajuste_rede_nivelamento():
+def ajuste_rede_nivelamento_int_point():
     # Definindo um ponto inicial para as altitudes (arbitrário)
     x0 = np.array([0] * 67)
 
@@ -271,19 +272,92 @@ def ajuste_rede_nivelamento():
 
     # Monitorando o uso de memória após a execução
     memory_after = process.memory_info().rss / 1024  # em KB
-    print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
+    print(f"Consumo de memória int point: {memory_after - memory_before:.4f} KB")
 
     # Marcando o tempo de término
     end_time = time.time()
 
     # Calculando o tempo de execução
     execution_time = end_time - start_time
-    print(f"Tempo de execução: {execution_time:.6f} segundos")
+    print(f"Tempo de execução int point: {execution_time:.6f} segundos")
 
     return resultado.x
 
+# Função que resolve o problema de otimização usando o método interior-point
+def ajuste_rede_nivelamento_sqp():
+    # Definindo um ponto inicial para as altitudes (arbitrário)
+    x0 = np.array([0] * 67)
+
+    # Marcando o tempo de início
+    start_time = time.time()
+
+    # Obter o processo atual
+    process = psutil.Process()  # O processo do Python atual
+
+    # Monitorando o uso de memória antes de começar
+    memory_before = process.memory_info().rss / 1024  # em KB
+
+    resultado = minimize(objective, x0, method='SLSQP')
+
+    # Monitorando o uso de memória após a execução
+    memory_after = process.memory_info().rss / 1024  # em KB
+    print(f"Consumo de memória SQP: {memory_after - memory_before:.4f} KB")
+
+
+    # Marcando o tempo de término
+    end_time = time.time()
+
+    # Calculando o tempo de execução
+    execution_time = end_time - start_time
+    print(f"Tempo de execução SQP: {execution_time:.6f} segundos")
+
+    return resultado.x
+
+# Função que resolve o problema de otimização usando o trf
+def ajuste_rede_nivelamento_trf():
+    # Definindo um ponto inicial para as altitudes (arbitrário)
+    x0 = np.array([0] * 67)
+
+    # Marcando o tempo de início
+    start_time = time.time()
+
+    # Obter o processo atual
+    process = psutil.Process()  # O processo do Python atual
+
+    # Monitorando o uso de memória antes de começar
+    memory_before = process.memory_info().rss / 1024  # em KB
+
+    resultado = least_squares(objective, x0, method='trf')
+
+    # Monitorando o uso de memória após a execução
+    memory_after = process.memory_info().rss / 1024  # em KB
+    print(f"Consumo de memória trf: {memory_after - memory_before:.4f} KB")
+
+
+    # Marcando o tempo de término
+    end_time = time.time()
+
+    # Calculando o tempo de execução
+    execution_time = end_time - start_time
+    print(f"Tempo de execução trf: {execution_time:.6f} segundos")
+
+    return resultado.x
+
+
 # Realizando o ajuste da rede de nivelamento
-altitudes_ajustadas = ajuste_rede_nivelamento()
+altitudes_ajustadas_int_point = ajuste_rede_nivelamento_int_point()
 
 # Exibindo os resultados
-print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+#print(", ".join([f"P{i+1} = {altitudes_ajustadas_int_point[i]:.4f}" for i in range(67)]))
+
+# Realizando o ajuste da rede de nivelamento
+altitudes_ajustadas_sqp = ajuste_rede_nivelamento_sqp()
+
+# Exibindo os resultados
+#print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+
+# Realizando o ajuste da rede de nivelamento
+altitudes_ajustadas_trf = ajuste_rede_nivelamento_trf()
+
+# Exibindo os resultados
+#print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
