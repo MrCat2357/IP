@@ -264,7 +264,7 @@ def ajuste_rede_nivelamento():
     # Monitorando o uso de memória antes de começar
     memory_before = process.memory_info().rss / 1024  # em KB
 
-    resultado = least_squares(objective, x0, method='trf')
+    resultado = least_squares(objective, x0, method='trf', xtol=1e-15, ftol=1e-15, gtol=1e-15, max_nfev=1000000000000)
 
     # Monitorando o uso de memória após a execução
     memory_after = process.memory_info().rss / 1024  # em KB

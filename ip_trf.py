@@ -267,4 +267,4 @@ def ajuste_rede_nivelamento():
 altitudes_ajustadas = ajuste_rede_nivelamento()
 
 # Exibindo os resultados
-#print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))

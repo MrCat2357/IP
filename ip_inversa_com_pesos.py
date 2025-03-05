@@ -265,6 +265,6 @@ end_time = time.time()  # Marca o tempo final
 # Calculando o tempo de execução
 execution_time = end_time - start_time
 
-#print(", ".join([f"P{i+1} = {x[i]:.4f}" for i in range(67)]))
+print(", ".join([f"P{i+1} = {x[i]:.4f}" for i in range(67)]))
 print("Tempo de execução: {:.6f} segundos".format(execution_time))
 
