@@ -1,11 +1,10 @@
 import numpy as np
-from scipy.optimize import minimize
-import time 
+from scipy.optimize import least_squares
+import time  
 import psutil
 import sympy
 
 # Definindo as medições observadas de diferenças de altura
-
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -222,13 +221,6 @@ A = np.array([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1]
 ])
 
-# Realizando a decomposição SVD
-#U, S, Vt = np.linalg.svd(A)
-
-_, inds = sympy.Matrix(A).T.rref()
-
-# Vetor matriz P dos pesos
-
 P2  = np.array([
     541.46, 174.26, 385.84, 144.17, 13.00, 108.10, 248.00, 83.43, 25.80, 44.13, 
     71.79, 61.86, 39.68, 20.33, 61.25, 59.48, 54.20, 73.95, 26.20, 67.08, 
@@ -245,6 +237,8 @@ P2  = np.array([
 
 P = np.diag(1/P2)
 
+_, inds = sympy.Matrix(A).T.rref()
+
 # Vetor b com as observações
 b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, 
               d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31, d32, d33, 
@@ -254,6 +248,7 @@ b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
               d82, d83, d84, d85, d86, d87, d88, d89, d90, d91, d92, d93, d94, d95, d96, d97, 
               d98, d99, d100, d101, d102, d103, d104, d105])
 
+
 def A_(i):
     return A[inds[i]]
 def L_(i):
@@ -262,13 +257,12 @@ def L_(i):
 A_star = np.array([A_(i) for i in range(67)])
 L_star = np.array([L_(i) for i in range(67)])
 
-
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
     t = np.dot(A,x) - b
     return np.sum(np.dot(t.T,(np.dot(P,t))) ** 2)
 
-# Função que resolve o problema de otimização usando o método interior-point
+# Função que resolve o problema de otimização usando o trf
 def ajuste_rede_nivelamento():
     # Definindo um ponto inicial para as altitudes (arbitrário)
     x0 = np.linalg.solve(A_star, L_star)
@@ -282,11 +276,12 @@ def ajuste_rede_nivelamento():
     # Monitorando o uso de memória antes de começar
     memory_before = process.memory_info().rss / 1024  # em KB
 
-    resultado = minimize(objective, x0, method='trust-constr', options={'maxiter':100})
+    resultado = least_squares(objective, x0, method='trf', xtol=1e-20, ftol=1e-20, gtol=1e-15, max_nfev=1000000, verbose=2)
 
     # Monitorando o uso de memória após a execução
     memory_after = process.memory_info().rss / 1024  # em KB
     print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
+
 
     # Marcando o tempo de término
     end_time = time.time()
@@ -302,7 +297,3 @@ altitudes_ajustadas = ajuste_rede_nivelamento()
 
 # Exibindo os resultados
 print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
-
-
-
-
