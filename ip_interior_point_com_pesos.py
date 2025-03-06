@@ -1,10 +1,11 @@
 import numpy as np
 from scipy.optimize import minimize
-import time  
+import time 
 import psutil
 import sympy
 
 # Definindo as medições observadas de diferenças de altura
+
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -221,6 +222,10 @@ A = np.array([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1]
 ])
 
+_, inds = sympy.Matrix(A).T.rref()
+
+# Vetor matriz P dos pesos
+
 P2  = np.array([
     541.46, 174.26, 385.84, 144.17, 13.00, 108.10, 248.00, 83.43, 25.80, 44.13, 
     71.79, 61.86, 39.68, 20.33, 61.25, 59.48, 54.20, 73.95, 26.20, 67.08, 
@@ -234,8 +239,6 @@ P2  = np.array([
     545.71, 187.89, 143.85, 24.01, 306.49, 196.96, 302.18, 7.39, 15.60, 8.94, 
     23.22, 3.17, 0.99, 7.35, 25.53
 ])
-
-_, inds = sympy.Matrix(A).T.rref()
 
 P = np.diag(1/P2)
 
@@ -256,12 +259,13 @@ def L_(i):
 A_star = np.array([A_(i) for i in range(67)])
 L_star = np.array([L_(i) for i in range(67)])
 
+
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
     t = np.dot(A,x) - b
     return np.sum(np.dot(t.T,(np.dot(P,t))) ** 2)
 
-# Função que resolve o problema de otimização usando o SQP
+# Função que resolve o problema de otimização usando o método interior-point
 def ajuste_rede_nivelamento():
     # Definindo um ponto inicial para as altitudes (arbitrário)
     x0 = np.linalg.solve(A_star, L_star)
@@ -275,13 +279,11 @@ def ajuste_rede_nivelamento():
     # Monitorando o uso de memória antes de começar
     memory_before = process.memory_info().rss / 1024  # em KB
 
-    resultado = minimize(objective, x0, method='SLSQP', options = {'disp':True,'maxiter':1000, 'ftol':1e-6})
-
+    resultado = minimize(objective, x0, method='trust-constr', options={'disp': True ,'maxiter':1000})
 
     # Monitorando o uso de memória após a execução
     memory_after = process.memory_info().rss / 1024  # em KB
     print(f"Consumo de memória: {memory_after - memory_before:.4f} KB")
-
 
     # Marcando o tempo de término
     end_time = time.time()
@@ -297,3 +299,7 @@ altitudes_ajustadas = ajuste_rede_nivelamento()
 
 # Exibindo os resultados
 print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+
+
+
+

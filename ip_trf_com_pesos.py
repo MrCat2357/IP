@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import least_squares
 import time  
 import psutil
+import sympy
 
 # Definindo as medições observadas de diferenças de altura
 
@@ -236,6 +237,8 @@ P2  = np.array([
 
 P = np.diag(1/P2)
 
+_, inds = sympy.Matrix(A).T.rref()
+
 # Vetor b com as observações
 b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, 
               d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31, d32, d33, 
@@ -245,6 +248,15 @@ b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
               d82, d83, d84, d85, d86, d87, d88, d89, d90, d91, d92, d93, d94, d95, d96, d97, 
               d98, d99, d100, d101, d102, d103, d104, d105])
 
+
+def A_(i):
+    return A[inds[i]]
+def L_(i):
+    return b[inds[i]]
+
+A_star = np.array([A_(i) for i in range(67)])
+L_star = np.array([L_(i) for i in range(67)])
+
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
     t = np.dot(A,x) - b
@@ -253,7 +265,7 @@ def objective(x):
 # Função que resolve o problema de otimização usando o trf
 def ajuste_rede_nivelamento():
     # Definindo um ponto inicial para as altitudes (arbitrário)
-    x0 = np.array([0] * 67)
+    x0 = np.linalg.solve(A_star, L_star)
 
     # Marcando o tempo de início
     start_time = time.time()
@@ -264,7 +276,7 @@ def ajuste_rede_nivelamento():
     # Monitorando o uso de memória antes de começar
     memory_before = process.memory_info().rss / 1024  # em KB
 
-    resultado = least_squares(objective, x0, method='trf', xtol=1e-15, ftol=1e-15, gtol=1e-15, max_nfev=1000000000000)
+    resultado = least_squares(objective, x0, method='trf', xtol=1e-20, ftol=1e-20, gtol=1e-15, max_nfev=1000000, verbose=2)
 
     # Monitorando o uso de memória após a execução
     memory_after = process.memory_info().rss / 1024  # em KB
