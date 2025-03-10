@@ -4,8 +4,24 @@ import time
 import psutil
 import sympy
 
-# Definindo as medições observadas de diferenças de altura
+#Usando os valores da decomposição Cholesky como comparativo
 
+cholesky = np.array([ 965.30129491,  780.78619024,   21.94529242,    3.00876436,   25.91178548,
+  188.17403943,   49.50376891,   13.18243665,  189.10826467,   82.84564073,
+    9.14153133,   19.57037011,    7.10509658,    2.08962952,  915.67359162,
+  898.19259463,  682.31181096,  925.42849515,  705.32005793,  780.68625837,
+  594.35444559,  685.96160546,  631.29044183,  773.22723711,  544.68755279,
+  488.06143755,  744.95449064,  535.76588662,  501.30621867,  803.39597494,
+ 1001.7987858 ,  489.14979437,  733.88571077,  937.20221464,  870.91588852,
+ 1188.38477989,  718.88381006,  805.92508227,  879.57784702, 1015.36382355,
+  896.32058892,  997.26453731,  910.22640398,  914.34865736,  879.76161103,
+  488.23740758,  526.42670564,  334.97491211,  678.88831879, 1159.7805328 ,
+  807.25293127,  402.02102767,  338.51705826,  200.68765134,  770.11220044,
+   18.11439725,  112.89929016,  604.41505237,  113.80113388,  487.01707516,
+   27.14108017,   11.81639446,   26.86452863,   27.45234064,   76.52108082,
+   62.16760659,   30.32540486])
+
+# Definindo as medições observadas de diferenças de altura
 
 d1 = 965.4909  
 d2 = -965.2125  
@@ -258,7 +274,8 @@ def L_(i):
 
 A_star = np.array([A_(i) for i in range(67)])
 L_star = np.array([L_(i) for i in range(67)])
-
+# Definindo um ponto inicial para as altitudes (arbitrário)
+x0 = np.linalg.solve(A_star, L_star)
 
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
@@ -267,9 +284,7 @@ def objective(x):
 
 # Função que resolve o problema de otimização usando o método interior-point
 def ajuste_rede_nivelamento():
-    # Definindo um ponto inicial para as altitudes (arbitrário)
-    x0 = np.linalg.solve(A_star, L_star)
-
+    
     # Marcando o tempo de início
     start_time = time.time()
 
@@ -292,13 +307,16 @@ def ajuste_rede_nivelamento():
     execution_time = end_time - start_time
     print(f"Tempo de execução: {execution_time:.6f} segundos")
 
-    return resultado.x
+    return resultado.x 
 
 # Realizando o ajuste da rede de nivelamento
 altitudes_ajustadas = ajuste_rede_nivelamento()
 
+medio = (np.sum((altitudes_ajustadas - cholesky)))/67
+
 # Exibindo os resultados
 print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+print(f"erro medio = {medio}")
 
 
 

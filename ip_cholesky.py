@@ -234,8 +234,6 @@ B = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
               d82, d83, d84, d85, d86, d87, d88, d89, d90, d91, d92, d93, d94, d95, d96, d97, 
               d98, d99, d100, d101, d102, d103, d104, d105])
 
-#C = np.dot(A.T,A)
-#D = np.dot(A.T, B)
  # Captura do tempo inicial e uso da CPU
 start_time = time.time()
 
@@ -260,3 +258,4 @@ execution_time = end_time-start_time
 
 print(", ".join([f"P{i+1} = {solution[i]:.4f}" for i in range(67)]))
 print(f"Tempo de execução: {execution_time:.6f} segundos")
+print (np.array2string(solution, separator=', '))

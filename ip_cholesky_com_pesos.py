@@ -275,3 +275,4 @@ execution_time = end_time-start_time
 
 print(", ".join([f"P{i+1} = {solution[i]:.4f}" for i in range(67)]))
 print(f"Tempo de execução: {execution_time:.6f} segundos")
+print (np.array2string(solution, separator=', '))

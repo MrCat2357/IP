@@ -58,3 +58,4 @@ altitudes_ajustadas = ajuste_rede_nivelamento()
 
 # Exibindo os resultados
 print("Altitudes ajustadas: P1 = {:.4f}, P2 = {:.4f}, P3 = {:.4f}, P4 = {:.4f}, P5 = {:.4f}, P6 = {:.4f}".format(altitudes_ajustadas[0], altitudes_ajustadas[1], altitudes_ajustadas[2], altitudes_ajustadas[3], altitudes_ajustadas[4], altitudes_ajustadas[5]))
+print (np.array2string(altitudes_ajustadas, separator=', '))

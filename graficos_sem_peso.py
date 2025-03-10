@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 metodos = ['Inversa', 'Cholesky', 'Interior-Point', 'SQP', 'TRF']
 
 # Consumo de memória (em KB) correspondente a cada método
-consumo_memoria = [2544, 2336, 1036, 348, 676]
+consumo_memoria = [2540, 2332, 792, 172, 516]
 
 # Tempo de execução (em segundos) correspondente a cada método
-tempo_execucao = [0.006841, 0.006706, 0.636762, 0.269997, 20.038809]
+tempo_execucao = [0.011315, 0.007204, 0.528255, 0.129455, 5.638276]
 
 # Criando os gráficos lado a lado
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))

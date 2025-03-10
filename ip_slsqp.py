@@ -2,6 +2,24 @@ import numpy as np
 from scipy.optimize import minimize
 import time  
 import psutil
+import sympy
+
+#Usando os valores da Decomposição Cholesky como comparativo
+cholesky = np.array([ 965.35669934,  780.79009801,   21.9514046 ,    3.02280327,   25.92370069,
+  188.16999426,   49.49647247,   13.17959307,  189.10729858,   82.84550133,
+    9.14410816,   19.56903009,    7.10440963,    2.09720453,  915.66389008,
+  898.21291253,  682.35705971,  925.4516429 ,  705.34045648,  780.70496683,
+  594.36065769,  685.98464936,  631.30765689,  773.24422657,  544.70942758,
+  488.07893067,  744.97249517,  535.77975594,  501.32321508,  803.4143175 ,
+ 1001.81085756,  489.16695863,  733.9010433 ,  937.25088563,  870.95447031,
+ 1188.40983632,  718.90352116,  805.93078896,  879.58059925, 1015.3871382 ,
+  896.33377541,  997.28839418,  910.24856893,  914.36511155,  879.76810199,
+  488.24616374,  526.45401573,  334.99659014,  678.90459114, 1159.80200106,
+  807.2809431 ,  402.03405283,  338.53198223,  200.70780272,  770.12573315,
+   18.11284929,  112.91506005,  604.46224391,  113.81669277,  487.03311554,
+   27.15376372,   11.8243381 ,   26.88953752,   27.4708851 ,   76.53779051,
+   62.18492727,   30.34434835])
+
 
 # Definindo as medições observadas de diferenças de altura
 
@@ -229,14 +247,24 @@ b = np.array([d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
               d82, d83, d84, d85, d86, d87, d88, d89, d90, d91, d92, d93, d94, d95, d96, d97, 
               d98, d99, d100, d101, d102, d103, d104, d105])
 
+_, inds = sympy.Matrix(A).T.rref()
+
+def A_(i):
+    return A[inds[i]]
+def L_(i):
+    return b[inds[i]]
+
+A_star = np.array([A_(i) for i in range(67)])
+L_star = np.array([L_(i) for i in range(67)])
+# Definindo um ponto inicial para as altitudes (arbitrário)
+x0 = np.linalg.solve(A_star, L_star)
+
 # Função objetivo a ser minimizada (soma dos quadrados dos resíduos)
 def objective(x):
     return np.sum(((np.dot(A, x) - b) ** 2))
 
 # Função que resolve o problema de otimização usando o método interior-point
 def ajuste_rede_nivelamento():
-    # Definindo um ponto inicial para as altitudes (arbitrário)
-    x0 = np.array([0] * 67)
 
     # Marcando o tempo de início
     start_time = time.time()
@@ -266,5 +294,8 @@ def ajuste_rede_nivelamento():
 # Realizando o ajuste da rede de nivelamento
 altitudes_ajustadas = ajuste_rede_nivelamento()
 
+medio = (np.sum(altitudes_ajustadas - cholesky))/67
+
 # Exibindo os resultados
 print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
+print(f"erro medio = {medio}")
