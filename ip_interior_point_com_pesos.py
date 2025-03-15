@@ -312,12 +312,19 @@ def ajuste_rede_nivelamento():
 # Realizando o ajuste da rede de nivelamento
 altitudes_ajustadas = ajuste_rede_nivelamento()
 
-medio = (np.sum((altitudes_ajustadas - cholesky)))/67
+def medio(a, b):
+    u = np.zeros(67)  # Inicializando um array de zeros com 67 elementos
+    
+    for i in range(66):  # Percorrendo todos os elementos dos vetores
+        u[i] = np.abs(a[i]) - np.abs(b[i])  # Calculando a diferença dos módulos
+    
+    return np.sum(u) / 67
+
+erro = medio(altitudes_ajustadas, cholesky)
 
 # Exibindo os resultados
 print(", ".join([f"P{i+1} = {altitudes_ajustadas[i]:.4f}" for i in range(67)]))
-print(f"erro medio = {medio}")
-
+print(f"erro medio = {erro}")
 
 
 
