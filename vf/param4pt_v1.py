@@ -30,9 +30,14 @@ def jacobian(x):
         # d(x1,x2)
         [(x2 - x1)/np.sqrt((x1 - x2)**2 + (y1 - y2)**2), (y2 - y1)/np.sqrt((x1 - x2)**2 + (y1 - y2)**2), 0, 0, 0, 0],
         # d(x1,x3)
-        [0, 0, (x3 - x1)/np.sqrt((x1 - x3)**2 + (y1 - y3)**2), (y3 - y1)/np.sqrt((x1 - x3)**2 + (y1 - y3)**2)],
+        [0, 0, (x3 - x1)/np.sqrt((x1 - x3)**2 + (y1 - y3)**2), (y3 - y1)/np.sqrt((x1 - x3)**2 + (y1 - y3)**2), 0, 0],
+        [0, 0, 0, 0, (x4 - x1)/np.sqrt((x1 - x4)**2 + (y1 - y4)**2), (y4 - y1)/np.sqrt((x1 - x4)**2 + (y1 - y4)**2)],
         [(x2 - x3)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2), (y2 - y3)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2),
-         (x3 - x2)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2), (y3 - y2)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2)]
+         (x3 - x2)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2), (y3 - y2)/np.sqrt((x2 - x3)**2 + (y2 - y3)**2), 0, 0],
+        [(x2 - x4)/np.sqrt((x2 - x4)**2 + (y2 - y4)**2), (y2 - y4)/np.sqrt((x2 - x4)**2 + (y2 - y4)**2), 0, 0,
+         (x4 - x2)/np.sqrt((x2 - x4)**2 + (y2 - y4)**2), (y4 - y2)/np.sqrt((x2 - x4)**2 + (y2 - y4)**2)],
+        [0, 0, (x3 - x4)/np.sqrt((x3 - x4)**2 + (y3 - y4)**2), (y3 - y4)/np.sqrt((x3 - x4)**2 + (y3 - y4)**2),
+         (x4 - x3)/np.sqrt((x4 - x3)**2 + (y4 - y3)**2), (y4 - y3)/np.sqrt((x4 - x3)**2 + (y4 - y3)**2)]                  
     ])
 
 # Parâmetros
@@ -56,7 +61,7 @@ for i in range(max_iter):
         break
 
     x = x + dx
-    print(f"Iteração {i+1}, x = {x}, ||dx|| = {np.linalg.norm(dx):.6f}")
+    print(f"Iteração {i+1}, x = {x}, ||dx|| = {np.linalg.norm(dx):.12f}")
 
     if np.linalg.norm(dx) < tolerance:
         break
@@ -67,5 +72,7 @@ print(f"x2 = {x[0]:.6f}")
 print(f"y2 = {x[1]:.6f}")
 print(f"x3 = {x[2]:.6f}")
 print(f"y3 = {x[3]:.6f}")
+print(f"x4 = {x[4]:.6f}")
+print(f"y4 = {x[5]:.6f}")
 
 
