@@ -1,122 +1,97 @@
-import numpy as np
+import sympy as sp
+import math
 
-# Ponto fixo
-x1, y1 = 100, 100
+# 1. Coordenadas conhecidas
+x1, y1 = 2, 1
 
-# Estimativas iniciais
-x = np.array([200, 65, 200, 200, 100, 200, 300, 150, 50, 150])
+# 2. Variáveis simbólicas
+x2, y2, x3, y3, x4, y4 = sp.symbols('x2 y2 x3 y3 x4 y4')
+x_syms = [x2, y2, x3, y3, x4, y4]
 
-# Distâncias observadas
-d12, d13, d14, d15, d16 = 104.4226, 141.4264, 100.0186, 206.1519, 70.6993
-d23, d24, d25, d26 = 130.0119, 164.0010, 128.0688, 169.9940
-d34, d35, d36 = 100.0009, 111.7834, 158.1090
-d45, d46 = 206.1490, 70.6874
-d56 = 250.0094
+# 3. Distâncias conhecidas
+d12, d13, d14 = 3, 4, 5
+d23, d24, d34 = 5, 4, 3
 
-# Função do sistema não-linear
-def f(x):
-    x2, y2, x3, y3, x4, y4, x5, y5, x6, y6 = x
-    return np.array([
-        np.sqrt((x1 - x2)**2 + (y1 - y2)**2) - d12,
-        np.sqrt((x1 - x3)**2 + (y1 - y3)**2) - d13,
-        np.sqrt((x1 - x4)**2 + (y1 - y4)**2) - d14,
-        np.sqrt((x1 - x5)**2 + (y1 - y5)**2) - d15,
-        np.sqrt((x1 - x6)**2 + (y1 - y6)**2) - d16,
-        np.sqrt((x2 - x3)**2 + (y2 - y3)**2) - d23,
-        np.sqrt((x2 - x4)**2 + (y2 - y4)**2) - d24,
-        np.sqrt((x2 - x5)**2 + (y2 - y5)**2) - d25,
-        np.sqrt((x2 - x6)**2 + (y2 - y6)**2) - d26,
-        np.sqrt((x3 - x4)**2 + (y3 - y4)**2) - d34,
-        np.sqrt((x3 - x5)**2 + (y3 - y5)**2) - d35,
-        np.sqrt((x3 - x6)**2 + (y3 - y6)**2) - d36,
-        np.sqrt((x4 - x5)**2 + (y4 - y5)**2) - d45,
-        np.sqrt((x4 - x6)**2 + (y4 - y6)**2) - d46,
-        np.sqrt((x5 - x6)**2 + (y5 - y6)**2) - d56,
-    ])
+# 4. Funções do sistema
+F = [
+    sp.sqrt((x2 - x1)**2 + (y2 - y1)**2) - d12,
+    sp.sqrt((x3 - x1)**2 + (y3 - y1)**2) - d13,
+    sp.sqrt((x4 - x1)**2 + (y4 - y1)**2) - d14,
+    sp.sqrt((x2 - x3)**2 + (y2 - y3)**2) - d23,
+    sp.sqrt((x2 - x4)**2 + (y2 - y4)**2) - d24,
+    sp.sqrt((x3 - x4)**2 + (y3 - y4)**2) - d34,
+]
 
-def jacobian(x):
-    x2, y2, x3, y3, x4, y4, x5, y5, x6, y6 = x
+# 5. Jacobiana simbólica
+J = sp.Matrix(F).jacobian(x_syms)
 
-    def deriv(px, py, qx, qy):
-        d = np.sqrt((px - qx)**2 + (py - qy)**2)
-        if d == 0:
-            return 0.0, 0.0
-        return (px - qx) / d, (py - qy) / d
+# 6. Lambdify funções e jacobiana
+f_func = sp.lambdify(x_syms, F, modules='math')
+J_func = sp.lambdify(x_syms, J, modules='math')
 
-    J = np.zeros((15, 10))
+# 7. Chute inicial
+x = [5.3, 0.7, 2.6, 4.8, 5.7, 5.3]
 
-    # f1 a f5
-    J[0, 0], J[0, 1] = deriv(x2, y2, x1, y1)
-    J[1, 2], J[1, 3] = deriv(x3, y3, x1, y1)
-    J[2, 4], J[2, 5] = deriv(x4, y4, x1, y1)
-    J[3, 6], J[3, 7] = deriv(x5, y5, x1, y1)
-    J[4, 8], J[4, 9] = deriv(x6, y6, x1, y1)
+# 8. Funções auxiliares
+def dot(u, v):
+    return sum(ui * vi for ui, vi in zip(u, v))
 
-    # Parciais das distâncias entre os pontos
-    pares = [(2, 3, 5), (2, 4, 6), (2, 5, 7), (2, 6, 8),
-             (3, 4, 9), (3, 5, 10), (3, 6, 11),
-             (4, 5, 12), (4, 6, 13), (5, 6, 14)]
+def mat_mult(A, B):
+    return [[sum(a*b for a, b in zip(A_row, B_col)) for B_col in zip(*B)] for A_row in A]
 
-    idx = {2: 0, 3: 2, 4: 4, 5: 6, 6: 8}
+def mat_transpose(A):
+    return [list(row) for row in zip(*A)]
 
-    coords = {2: (x2, y2), 3: (x3, y3), 4: (x4, y4),
-              5: (x5, y5), 6: (x6, y6)}
+def solve_gauss(A, b):
+    n = len(A)
+    Ab = [A[i] + [b[i]] for i in range(n)]
 
-    for a, b, row in pares:
-        ax, ay = coords[a]
-        bx, by = coords[b]
-        dax, day = deriv(ax, ay, bx, by)
-        dbx, dby = deriv(bx, by, ax, ay)
-        J[row, idx[a]], J[row, idx[a]+1] = dax, day
-        J[row, idx[b]], J[row, idx[b]+1] = dbx, dby
+    for i in range(n):
+        pivot = Ab[i][i]
+        if abs(pivot) < 1e-12:
+            raise ValueError("Singular matrix")
+        for j in range(i+1, n):
+            ratio = Ab[j][i] / pivot
+            for k in range(i, n+1):
+                Ab[j][k] -= ratio * Ab[i][k]
 
-    return J
+    x = [0] * n
+    for i in reversed(range(n)):
+        x[i] = Ab[i][n] / Ab[i][i]
+        for j in range(i):
+            Ab[j][n] -= Ab[j][i] * x[i]
+    return x
 
-# Parâmetros do ajuste
-sigma = 0.01  # desvio padrão das observações (10 mm)
-max_iter = 5000
-tolerance = 1e-4
+def norm(v):
+    return math.sqrt(sum(vi**2 for vi in v))
 
-# Iterações de Newton com mínimos quadrados
+# 9. Iterações de Gauss-Newton
+max_iter = 100
+tolerance = 1e-10
+
 for i in range(max_iter):
-    fx = f(x) / sigma
-    J = jacobian(x) / sigma
+    fx = f_func(*x)
+    Jx = J_func(*x)
+
+    JT = mat_transpose(Jx)
+    A = mat_mult(JT, Jx)
+    b = mat_mult(JT, [[-r] for r in fx])
+    b = [row[0] for row in b]
 
     try:
-        JT = J.T
-        A = np.dot(JT, J)
-        b = np.dot(JT, -fx)
-        dx = np.linalg.solve(A, b)
-    except np.linalg.LinAlgError:
+        dx = solve_gauss([row[:] for row in A], b)
+    except ValueError:
         print("Sistema singular na iteração", i)
         break
 
-    x = x + dx
-    print(f"Iteração {i+1}, ||dx|| = {np.linalg.norm(dx):.12f}")
+    x = [xi + dxi for xi, dxi in zip(x, dx)]
 
-    if np.linalg.norm(dx) < tolerance:
+    print(f"Iteração {i+1}, ||dx|| = {norm(dx):.12f}")
+    if norm(dx) < tolerance:
         break
 
-# Solução final
+# 10. Resultado final
 print("\nSolução aproximada encontrada:")
-for i in range(5):
-    print(f"x{i+2} = {x[2*i]:.6f}, y{i+2} = {x[2*i+1]:.6f}")
-
-# Cálculo da matriz de covariância a posteriori
-fx_final = f(x) / sigma
-J_final = jacobian(x) / sigma
-A = np.dot(J_final.T, J_final)
-n = 15  # observações
-u = 10  # parâmetros
-residuos = fx_final
-s0_2 = np.sum(residuos**2) / (n - u)
-cov_x = s0_2 * np.linalg.inv(A)
-
-# Desvios padrão das coordenadas
-desvios = np.sqrt(np.diag(cov_x))
-print("\nDesvios padrão estimados:")
-for i, name in enumerate(["x2", "y2", "x3", "y3", "x4", "y4", "x5", "y5", "x6", "y6"]):
-    print(f"{name}: {desvios[i]:.4f} m")
-
-print(f"\nFator de variância a posteriori: {s0_2:.8f}")
-print(f"Desvio padrão a posteriori: {np.sqrt(s0_2):.6f} m")
+print(f"x2 = {x[0]:.6f}, y2 = {x[1]:.6f}")
+print(f"x3 = {x[2]:.6f}, y3 = {x[3]:.6f}")
+print(f"x4 = {x[4]:.6f}, y4 = {x[5]:.6f}")

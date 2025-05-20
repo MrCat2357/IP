@@ -5,14 +5,14 @@ x1 = 2
 y1 = 1
 
 # Chute inicial para os 5 pontos estimados: (x2, y2, ..., x6, y6)
-x = np.array([5.3, 0.7, 2.6, 4.8, 5.7, 5.3, 3.3, 1.5, 4.4, 0.5])
+x = np.array([200, 65, 200, 200, 100, 200, 300, 150, 50, 150])
 
 # Distâncias conhecidas (você pode ajustar isso)
-d12, d13, d14, d15, d16 = 3, 4, 5, 3.2, 4.1
-d23, d24, d25, d26 = 5, 4, 3, 3
-d34, d35, d36 = 3, 4, 5
-d45, d46 = 5, 3.3
-d56 = 2.8
+d12, d13, d14, d15, d16 = 104.4226, 141.4264, 100.0186, 200.1519, 70.6993
+d23, d24, d25, d26 = 130.0119, 164.0010, 128.0688, 169.9940
+d34, d35, d36 = 100.0009, 111.7834, 158.1090
+d45, d46 = 206.1490, 70.6874
+d56 = 250.0094
 
 # Sistema não-linear: diferenças entre distâncias observadas e calculadas
 def f(x):
