@@ -8,9 +8,11 @@ try:
     import psutil
     psutil_disponivel = True
     processo = psutil.Process()
+    memoria_inicial = processo.memory_info().rss / 1024 / 1024  # Memória antes do loop (em MB)
 except ImportError:
     print("Aviso: psutil não está instalado. Uso de CPU/memória não será medido.")
     psutil_disponivel = False
+    memoria_inicial = 0  # Valor neutro caso psutil não esteja disponível
 
 # Dados de entrada
 medidas_distancias = {
@@ -51,7 +53,7 @@ num_execucoes = 100
 
 for i in range(num_execucoes):
     tempo_inicio = time.time()
-    
+
     ajuste = least_squares(calcular_residuos, chute_inicial, method='lm', verbose=0)
 
     tempo_fim = time.time()
@@ -59,13 +61,13 @@ for i in range(num_execucoes):
     tempos_execucao.append(tempo_execucao)
 
     if psutil_disponivel:
-        mem_uso = processo.memory_info().rss / 1024 / 1024  # uso total em MB
-        usos_memoria.append(mem_uso)
+        mem_uso = processo.memory_info().rss / 1024 / 1024  # Memória atual
+        usos_memoria.append(mem_uso - memoria_inicial)  # Relativa à inicial
     else:
         usos_memoria.append(np.nan)
 
     coordenadas_resultados.append(ajuste.x)
-    time.sleep(1)  # Pode ser ajustado ou removido conforme necessidade
+    time.sleep(1)  # Pode ajustar ou remover conforme necessário
 
 # Estatísticas
 coordenadas_array = np.array(coordenadas_resultados)
@@ -96,4 +98,4 @@ for nome, media, std in zip(nomes_parametros, media_coord, std_coord):
     print(f"{nome}: média = {media:.4f}, desvio padrão = {std:.4f}")
 
 print(f"\n⏱ Tempo de execução médio: {media_tempo:.4f} s (± {std_tempo:.4f})")
-print(f"🧠 Uso de memória médio: {media_mem:.4f} MB (± {std_mem:.4f})")
+print(f"🧠 Uso de memória médio (relativo à inicial): {media_mem:.4f} MB (± {std_mem:.4f})")
