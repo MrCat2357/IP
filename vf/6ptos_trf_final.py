@@ -54,7 +54,7 @@ num_execucoes = 100
 for i in range(num_execucoes):
     tempo_inicio = time.time()
 
-    ajuste = least_squares(calcular_residuos, chute_inicial, method='lm', verbose=0)
+    ajuste = least_squares(calcular_residuos, chute_inicial, method='trf', verbose=0)
 
     tempo_fim = time.time()
     tempo_execucao = tempo_fim - tempo_inicio
@@ -67,7 +67,7 @@ for i in range(num_execucoes):
         usos_memoria.append(np.nan)
 
     coordenadas_resultados.append(ajuste.x)
-#    time.sleep(1)  # Pode ajustar ou remover conforme necessário
+    time.sleep(1)  # Pode ajustar ou remover conforme necessário
 
 # Estatísticas
 coordenadas_array = np.array(coordenadas_resultados)
