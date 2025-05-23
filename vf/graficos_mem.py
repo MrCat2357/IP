@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 
 # Métodos utilizados
-metodos = ['Newton-Gauss', 'TRF', 'Interior-Point', 'SQP']
+metodos = ['Newton-Gauss-Inversa', 'Newton-Gauss-Cholesky' , 'TRF', 'Interior-Point', 'SQP']
 
 # Consumo de memória (em KB) correspondente a cada método
-consumo_memoria = [289.1, 2226.6, 710.9, 234.4]
+consumo_memoria = [18003.6, 18012.5, 2226.6, 710.9, 234.4]
 
 # Tempo de execução (em segundos) correspondente a cada método
-tempo_execucao = [0.0050, 0.0261, 0.0986, 0.0131]
+tempo_execucao = [0.0010, 0.0013, 0.0261, 0.0986, 0.0131]
 
 # Criando os gráficos lado a lado
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))

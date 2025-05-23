@@ -72,13 +72,13 @@ def jacobian(x):
     ])
 
 # Método de Newton-Gauss
-def newton_gauss(x0, tol=1e-5, max_iter=500):
+def newton_gauss(x0, tol=1e-9, max_iter=500):
     x = x0
     for i in range(max_iter):
         F = f(x)
         J = jacobian(x)
         # Regularização tipo Levenberg-Marquardt
-        lambda_reg = 1e-6  # Pode ajustar esse valor (quanto maior, mais conservador)
+        lambda_reg = 1e-4  # Pode ajustar esse valor (quanto maior, mais conservador)
         JTJ = J.T @ J + lambda_reg * np.eye(J.shape[1])  # Adiciona lambda à diagonal
         JTF = J.T @ (-F)
 
